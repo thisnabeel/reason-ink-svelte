@@ -4,6 +4,7 @@
 	import Api from '$lib/api/api/api.js';
 
 	let experiments = element.experiments || [];
+	let wizardLoading = false;
 
 	const addExperiment = async () => {
 		// First create the experiment
@@ -27,6 +28,9 @@
 	};
 
 	const generateWithWizard = async () => {
+		if (wizardLoading) return; // Prevent multiple simultaneous requests
+		
+		wizardLoading = true;
 		try {
 			// Generate experiment using wizard AI
 			const experimentResponse = await Api.post(`/concepts/${element.id}/generate_experiment.json`);
@@ -37,6 +41,8 @@
 		} catch (error) {
 			console.error('Error generating experiment with wizard:', error);
 			alert('Failed to generate experiment. Please try again.');
+		} finally {
+			wizardLoading = false;
 		}
 	};
 
@@ -69,12 +75,6 @@
 </script>
 
 <ul class="experiments">
-	<div class="adder">
-		<div class="add-experiment" on:click={addExperiment}>+</div>
-		<div class="wizard-experiment" on:click={generateWithWizard}>
-			<i class="fa fa-magic"></i>
-		</div>
-	</div>
 	{#if experiments.length > 0}
 		{#each experiments as experiment}
 			<li class="experiment">
@@ -82,10 +82,10 @@
 					contenteditable
 					on:keyup={(e) => saveExperiment(experiment, 'title', e.target.innerHTML)}>{experiment.title || ''}</span
 				>
-				<span
+				<div
 					class="body"
 					contenteditable
-					on:keyup={(e) => saveExperiment(experiment, 'body', e.target.innerHTML)}>{experiment.body || ''}</span
+					on:keyup={(e) => saveExperiment(experiment, 'body', e.target.innerHTML)}>{@html experiment.body || ''}</div
 				>
 				<span class="fa fa-trash" on:click={() => handleRemoveExperiment(experiment)} />
 			</li>
@@ -95,6 +95,16 @@
 			<h1>No Experiments Yet.</h1>
 		</div>
 	{/if}
+	<div class="adder">
+		<div class="add-experiment" on:click={addExperiment}>+</div>
+		<div class="wizard-experiment" class:loading={wizardLoading} on:click={generateWithWizard}>
+			{#if wizardLoading}
+				<i class="fa fa-spinner fa-spin"></i>
+			{:else}
+				<i class="fa fa-magic"></i>
+			{/if}
+		</div>
+	</div>
 </ul>
 
 <style>
@@ -113,16 +123,13 @@
 
 	.adder {
 		font-size: 72px;
-		position: absolute;
-		left: 35%;
-		height: 0px;
-		color: #ffd67f;
-		width: 0px;
-		bottom: 60px;
-		display: -webkit-inline-box;
+		position: relative;
 		display: flex;
 		gap: 20px;
 		align-items: center;
+		justify-content: center;
+		margin-top: 30px;
+		padding: 20px 0;
 	}
 
 	.add-experiment {
@@ -136,9 +143,18 @@
 		transition: all 0.3s ease;
 	}
 
-	.wizard-experiment:hover {
+	.wizard-experiment:hover:not(.loading) {
 		transform: scale(1.1);
 		color: #8e44ad;
+	}
+
+	.wizard-experiment.loading {
+		cursor: not-allowed;
+		opacity: 0.7;
+	}
+
+	.wizard-experiment .fa-spinner {
+		color: #9b59b6;
 	}
 
 	.experiments {
@@ -172,6 +188,29 @@
 	.experiment .body {
 		display: block;
 		min-height: 100px;
+	}
+
+	.experiment .body :global(p) {
+		margin: 0 0 12px 0;
+	}
+
+	.experiment .body :global(p:last-child) {
+		margin-bottom: 0;
+	}
+
+	.experiment .body :global(ul),
+	.experiment .body :global(ol) {
+		margin: 12px 0;
+		padding-left: 24px;
+	}
+
+	.experiment .body :global(li) {
+		margin: 6px 0;
+	}
+
+	.experiment .body :global(em),
+	.experiment .body :global(strong) {
+		font-weight: 600;
 	}
 
 	.experiment .fa-trash {
