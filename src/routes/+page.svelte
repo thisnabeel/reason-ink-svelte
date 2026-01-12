@@ -1,42 +1,43 @@
 <script>
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcomeFallback from '$lib/images/svelte-welcome.png';
+	import ExperimentsMasonry from '$lib/components/Experiments/ExperimentsMasonry.svelte';
 </script>
 
 <svelte:head>
-	<title>Home</title>
-	<meta name="description" content="Svelte demo app" />
+	<title>Thought Experiments</title>
+	<meta name="description" content="Explore thought experiments across concepts" />
 </svelte:head>
 
-<section></section>
+<section>
+	<h1>Thought Experiments</h1>
+	<ExperimentsMasonry />
+</section>
 
 <style>
 	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
+		padding: 40px 20px;
+		min-height: 100vh;
+		background: #f5f5f5;
+		width: 100%;
+		box-sizing: border-box;
+		overflow-x: hidden;
 	}
 
 	h1 {
-		width: 100%;
+		text-align: center;
+		font-size: 48px;
+		font-weight: 700;
+		margin: 0 0 40px 0;
+		color: #000;
 	}
 
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
+	@media (max-width: 640px) {
+		section {
+			padding: 20px 10px;
+		}
 
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
+		h1 {
+			font-size: 32px;
+			margin-bottom: 24px;
+		}
 	}
 </style>

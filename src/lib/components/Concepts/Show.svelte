@@ -2,10 +2,11 @@
 	import Abstractions from '../Page/Tabs/Abstractions/Abstractions.svelte';
 	import Quizzes from '../Page/Tabs/Quiz/Quizzes.svelte';
 	import Scripts from '../Page/Tabs/Scripts/Scripts.svelte';
+	import Experiments from '../Page/Tabs/Experiments/Experiments.svelte';
 
 	export let concept;
 
-	let tabs = ['Abstractions', 'Quiz', 'Scripts'];
+	let tabs = ['Abstractions', 'Quiz', 'Scripts', 'Experiments'];
 	let activeTab = 'Abstractions';
 </script>
 
@@ -47,6 +48,10 @@
 	{#if activeTab === 'Scripts'}
 		<Scripts element={concept} elementType="concepts" />
 	{/if}
+
+	{#if activeTab === 'Experiments'}
+		<Experiments element={concept} elementType="concepts" />
+	{/if}
 </section>
 
 <style>
@@ -63,7 +68,7 @@
 	}
 
 	.flex > div {
-		flex: 1 1 33%;
+		flex: 1 1 25%;
 		text-align: center;
 	}
 
