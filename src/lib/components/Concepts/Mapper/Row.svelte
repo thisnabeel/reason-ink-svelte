@@ -20,7 +20,14 @@
 </script>
 
 <li class="concept" class:selected={$selectedConcept && item.id === $selectedConcept.id}>
-	<span class="title" on:click={handleConceptClick}>{item.title}</span>
+	<div class="concept-info" on:click={handleConceptClick}>
+		<span class="title">{item.title}</span>
+		{#if item.start_year || item.end_year}
+			<span class="years">
+				{item.start_year || '?'} — {item.end_year || '?'}
+			</span>
+		{/if}
+	</div>
 	{#if $selectedConcept && item.id === $selectedConcept.id}
 		<i
 			class="fa fa-link link-btn"
@@ -60,11 +67,25 @@
 		background: rgb(199, 199, 255);
 	}
 
-	.title {
+	.concept-info {
 		width: 100%;
 		padding: 14px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		cursor: pointer;
+	}
+
+	.title {
 		display: block;
 		font-size: 28px;
+	}
+
+	.years {
+		font-size: 12px;
+		color: #999;
+		font-weight: 400;
+		letter-spacing: 0.3px;
 	}
 
 	.link-btn,

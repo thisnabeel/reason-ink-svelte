@@ -29,7 +29,7 @@
 
 	<div class="search-col search-col-right">
 		<div class="cta-search">
-			<a href="/concepts/mapper">Concepts</a>
+			<a href="/concepts/mapper">Concepts</a> | <a href="/concepts/timeline">Timeline</a>
 		</div>
 		<input
 			type="text"
