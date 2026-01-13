@@ -1,11 +1,66 @@
-<script>
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { concepts } from '$lib/stores/main';
+	import Api from '$lib/api/api/api.js';
+
 	let wondersQuery = '';
 	let skillsQuery = '';
 	let mapShown = false;
+	let showConceptResults = false;
+	let conceptResults: any[] = [];
 
 	const toggleMap = () => {
 		mapShown = !mapShown;
 	};
+
+	onMount(async () => {
+		// Load concepts if not already loaded
+		if ($concepts.length === 0) {
+			const response = await Api.get('/concepts.json');
+			concepts.set(response);
+		}
+	});
+
+	const handleConceptInputClick = () => {
+		if (skillsQuery.length > 0) return;
+		// Show random concepts when clicking empty input
+		let randomItems: any[] = [];
+		while (randomItems.length < 6 && $concepts.length > 0) {
+			const randomElement = $concepts[Math.floor(Math.random() * $concepts.length)];
+			if (randomItems.indexOf(randomElement) > -1) {
+				continue;
+			}
+			randomItems.push(randomElement);
+		}
+		showConceptResults = true;
+		conceptResults = randomItems;
+	};
+
+	const searchConcepts = (query: string) => {
+		if (query.length > 0 && query.length < 2) {
+			showConceptResults = false;
+		} else if (query.length > 1) {
+			showConceptResults = true;
+			// Case-insensitive search
+			const queryUpper = query.toUpperCase();
+			conceptResults = $concepts.filter(
+				(item: any) => item.title && item.title.toUpperCase().indexOf(queryUpper) > -1
+			);
+		} else {
+			showConceptResults = false;
+		}
+	};
+
+	const handleConceptSelect = (concept: any) => {
+		goto(`/concepts/${concept.id}`);
+		skillsQuery = '';
+		showConceptResults = false;
+	};
+
+	$: {
+		searchConcepts(skillsQuery);
+	}
 </script>
 
 <div class="search-row">
@@ -31,12 +86,30 @@
 		<div class="cta-search">
 			<a href="/concepts/mapper">Concepts</a> | <a href="/concepts/timeline">Timeline</a>
 		</div>
-		<input
-			type="text"
-			bind:value={skillsQuery}
-			placeholder="Search Concepts..."
-			class="search-input"
-		/>
+		<div class="search-input-wrapper">
+			<input
+				type="text"
+				bind:value={skillsQuery}
+				on:click={handleConceptInputClick}
+				on:blur={() =>
+					setTimeout(function () {
+						showConceptResults = false;
+					}, 200)}
+				placeholder="Search Concepts..."
+				class="search-input"
+			/>
+			{#if conceptResults && showConceptResults && conceptResults.length > 0}
+				<ul class="search-results">
+					{#each conceptResults as concept}
+						<li>
+							<a href="/concepts/{concept.id}" on:click={() => handleConceptSelect(concept)}
+								>{concept.title}</a
+							>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -71,6 +144,11 @@
 		align-items: flex-end;
 		justify-content: center;
 		padding-bottom: 0;
+	}
+
+	.search-input-wrapper {
+		position: relative;
+		width: 100%;
 	}
 
 	.cta-search {
@@ -228,6 +306,52 @@
 		filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 	}
 
+	.search-results {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		background: #fff;
+		border: 2px solid #5f4a4a;
+		border-radius: 8px;
+		margin-top: 4px;
+		padding: 0;
+		list-style: none;
+		z-index: 999;
+		max-height: 400px;
+		overflow-y: auto;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	}
+
+	.search-results li {
+		padding: 16px 24px;
+		border-bottom: 1px solid #e0e0e0;
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.search-results li:last-child {
+		border-bottom: none;
+	}
+
+	.search-results li:hover {
+		background-color: #ffffc7;
+	}
+
+	.search-results li a {
+		display: block;
+		text-decoration: none;
+		color: #2a2a2a;
+		font-size: 18px;
+		font-weight: 400;
+		font-family:
+			-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+	}
+
+	.search-results li:hover a {
+		color: #000;
+	}
+
 	@media (max-width: 768px) {
 		.search-row {
 			padding: 0 1rem;
@@ -284,6 +408,18 @@
 
 		.map-button .fa {
 			font-size: 24px;
+		}
+
+		.search-results {
+			font-size: 16px;
+		}
+
+		.search-results li {
+			padding: 12px 16px;
+		}
+
+		.search-results li a {
+			font-size: 16px;
 		}
 	}
 </style>

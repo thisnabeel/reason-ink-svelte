@@ -3,36 +3,27 @@
 	export let elementType;
 	import Api from '$lib/api/api/api.js';
 
-	let experiments = element.experiments || [];
+	let examples = element.examples || [];
 	let wizardLoading = false;
 	let showWizard = false;
-	let wizardPrompt = `Generate a thought experiment for one of the philosophies of ${element.title}. It should be bullet point digestible and minimal sized formatting. Max 300 characters. Return json format: {title: "the title of the thought experiment", body: "the body content of the thought experiment with HTML formatting for paragraphs and emphasis"}`;
+	let wizardPrompt = `Generate an example for the concept '${element.title}'. The example should be concise and practical, with a maximum of 250 characters. Return json format: {title: "the title of the example", body: "the body content of the example with HTML formatting for paragraphs and emphasis"}`;
 
-	const addExperiment = async () => {
-		// First create the experiment
-		const experimentResponse = await Api.post('/experiments.json', {
-			experiment: {
-				title: 'New Experiment',
+	const addExample = async () => {
+		const response = await Api.post('/examples.json', {
+			example: {
+				concept_id: element.id,
+				title: 'New Example',
 				body: ''
 			}
 		});
-
-		// Then link it to the concept
-		await Api.post('/concept_experiments.json', {
-			concept_experiment: {
-				concept_id: element.id,
-				experiment_id: experimentResponse.id
-			}
-		});
-
-		experiments = [...experiments, experimentResponse];
-		element.experiments = experiments;
+		examples = [...examples, response];
+		element.examples = examples;
 	};
 
 	const toggleWizard = () => {
 		showWizard = !showWizard;
 		if (showWizard) {
-			wizardPrompt = `Generate a thought experiment for one of the philosophies of ${element.title}. It should be bullet point digestible and minimal sized formatting. Max 300 characters. Return json format: {title: "the title of the thought experiment", body: "the body content of the thought experiment with HTML formatting for paragraphs and emphasis"}`;
+			wizardPrompt = `Generate an example for the concept '${element.title}'. The example should be concise and practical, with a maximum of 250 characters. Return json format: {title: "the title of the example", body: "the body content of the example with HTML formatting for paragraphs and emphasis"}`;
 		}
 	};
 
@@ -41,44 +32,34 @@
 		
 		wizardLoading = true;
 		try {
-			// Generate experiment using wizard AI
-			const experimentResponse = await Api.post(`/concepts/${element.id}/generate_experiment.json`, {
+			// Generate example using wizard AI
+			const exampleResponse = await Api.post(`/concepts/${element.id}/generate_example.json`, {
 				prompt: wizardPrompt
 			});
 			
-			// The experiment is already linked to the concept by the backend
-			experiments = [...experiments, experimentResponse];
-			element.experiments = experiments;
+			examples = [...examples, exampleResponse];
+			element.examples = examples;
 			showWizard = false;
 		} catch (error) {
-			console.error('Error generating experiment with wizard:', error);
-			alert('Failed to generate experiment. Please try again.');
+			console.error('Error generating example with wizard:', error);
+			alert('Failed to generate example. Please try again.');
 		} finally {
 			wizardLoading = false;
 		}
 	};
 
-	async function handleRemoveExperiment(experiment) {
-		// Find the join record
-		const conceptExperiments = await Api.get(`/concept_experiments.json?concept_id=${element.id}`);
-		const joinRecord = conceptExperiments.find(
-			(ce) => ce.concept_id === element.id && ce.experiment_id === experiment.id
-		);
-
-		if (joinRecord) {
-			await Api.delete(`/concept_experiments/${joinRecord.id}`);
-		}
-
-		experiments = experiments.filter((e) => e.id !== experiment.id);
-		element.experiments = experiments;
+	async function handleRemoveExample(example) {
+		await Api.delete(`/examples/${example.id}`);
+		examples = examples.filter((e) => e.id !== example.id);
+		element.examples = examples;
 	}
 
 	let timer;
-	const saveExperiment = (experiment, field, value) => {
+	const saveExample = (example, field, value) => {
 		clearTimeout(timer);
 		timer = setTimeout(async () => {
-			await Api.put(`/experiments/${experiment.id}`, {
-				experiment: {
+			await Api.put(`/examples/${example.id}`, {
+				example: {
 					[field]: value
 				}
 			});
@@ -86,27 +67,27 @@
 	};
 </script>
 
-<div class="experiments-container">
-	<ul class="experiments">
-		{#if experiments.length > 0}
-			{#each experiments as experiment}
-				<li class="experiment">
+<div class="examples-container">
+	<ul class="examples">
+		{#if examples.length > 0}
+			{#each examples as example}
+				<li class="example">
 					<span
 						contenteditable
-						on:keyup={(e) => saveExperiment(experiment, 'title', e.target.innerHTML)}>{@html experiment.title || ''}</span
+						on:keyup={(e) => saveExample(example, 'title', e.target.innerHTML)}>{@html example.title || ''}</span
 					>
 					<div
 						class="body"
 						contenteditable
-						on:keyup={(e) => saveExperiment(experiment, 'body', e.target.innerHTML)}>{@html experiment.body || ''}</div
+						on:keyup={(e) => saveExample(example, 'body', e.target.innerHTML)}>{@html example.body || ''}</div
 					>
-					<span class="fa fa-trash" on:click={() => handleRemoveExperiment(experiment)} />
+					<span class="fa fa-trash" on:click={() => handleRemoveExample(example)} />
 				</li>
 			{/each}
 		{:else}
 			<li>
 				<div class="cta">
-					<h1>No Experiments Yet.</h1>
+					<h1>No Examples Yet.</h1>
 				</div>
 			</li>
 		{/if}
@@ -131,8 +112,8 @@
 	{/if}
 
 	<div class="adder">
-		<div class="add-experiment" on:click={addExperiment}>+</div>
-		<div class="wizard-experiment" class:loading={wizardLoading} on:click={toggleWizard}>
+		<div class="add-example" on:click={addExample}>+</div>
+		<div class="wizard-example" class:loading={wizardLoading} on:click={toggleWizard}>
 			{#if wizardLoading}
 				<i class="fa fa-spinner fa-spin"></i>
 			{:else}
@@ -143,7 +124,7 @@
 </div>
 
 <style>
-	.experiments-container {
+	.examples-container {
 		position: relative;
 		width: 70%;
 		margin: 0 auto;
@@ -173,28 +154,28 @@
 		padding: 20px 0;
 	}
 
-	.add-experiment {
+	.add-example {
 		cursor: pointer;
 	}
 
-	.wizard-experiment {
+	.wizard-example {
 		font-size: 36px;
 		cursor: pointer;
 		color: #9b59b6;
 		transition: all 0.3s ease;
 	}
 
-	.wizard-experiment:hover:not(.loading) {
+	.wizard-example:hover:not(.loading) {
 		transform: scale(1.1);
 		color: #8e44ad;
 	}
 
-	.wizard-experiment.loading {
+	.wizard-example.loading {
 		cursor: not-allowed;
 		opacity: 0.7;
 	}
 
-	.wizard-experiment .fa-spinner {
+	.wizard-example .fa-spinner {
 		color: #9b59b6;
 	}
 
@@ -251,7 +232,7 @@
 		cursor: not-allowed;
 	}
 
-	.experiments {
+	.examples {
 		font-size: 24px;
 		color: #000;
 		position: relative;
@@ -261,7 +242,7 @@
 		padding: 20px 0;
 	}
 
-	.experiment {
+	.example {
 		position: relative;
 		padding: 20px;
 		margin-bottom: 20px;
@@ -269,7 +250,7 @@
 		border-radius: 8px;
 	}
 
-	.experiment span[contenteditable]:first-of-type {
+	.example span[contenteditable]:first-of-type {
 		display: block;
 		font-size: 28px;
 		font-weight: bold;
@@ -278,58 +259,58 @@
 		outline: none;
 	}
 
-	.experiment .body {
+	.example .body {
 		display: block;
 		min-height: 100px;
 		outline: none;
 	}
 
-	.experiment .body :global(p) {
+	.example .body :global(p) {
 		margin: 0 0 1em 0;
 	}
-	.experiment .body :global(p:last-child) {
+	.example .body :global(p:last-child) {
 		margin-bottom: 0;
 	}
-	.experiment .body :global(ul) {
+	.example .body :global(ul) {
 		list-style: disc;
 		margin-left: 20px;
 		margin-bottom: 1em;
 	}
-	.experiment .body :global(ol) {
+	.example .body :global(ol) {
 		list-style: decimal;
 		margin-left: 20px;
 		margin-bottom: 1em;
 	}
-	.experiment .body :global(li) {
+	.example .body :global(li) {
 		margin-bottom: 0.5em;
 	}
-	.experiment .body :global(strong) {
+	.example .body :global(strong) {
 		font-weight: bold;
 	}
-	.experiment .body :global(em) {
+	.example .body :global(em) {
 		font-style: italic;
 	}
-	.experiment .body :global(h1),
-	.experiment .body :global(h2),
-	.experiment .body :global(h3),
-	.experiment .body :global(h4),
-	.experiment .body :global(h5),
-	.experiment .body :global(h6) {
+	.example .body :global(h1),
+	.example .body :global(h2),
+	.example .body :global(h3),
+	.example .body :global(h4),
+	.example .body :global(h5),
+	.example .body :global(h6) {
 		font-weight: bold;
 		margin-top: 1em;
 		margin-bottom: 0.5em;
 	}
-	.experiment .body :global(h1) {
+	.example .body :global(h1) {
 		font-size: 2em;
 	}
-	.experiment .body :global(h2) {
+	.example .body :global(h2) {
 		font-size: 1.5em;
 	}
-	.experiment .body :global(h3) {
+	.example .body :global(h3) {
 		font-size: 1.17em;
 	}
 
-	.experiment .fa-trash {
+	.example .fa-trash {
 		position: absolute;
 		top: 10px;
 		right: 10px;
@@ -338,17 +319,18 @@
 		font-size: 24px;
 	}
 
-	.experiment .fa-trash:hover {
+	.example .fa-trash:hover {
 		color: #c82333;
 	}
 
 	@media (max-width: 480px) {
-		.experiments-container {
+		.examples-container {
 			width: 100%;
 		}
 
-		.experiments {
+		.examples {
 			width: 100%;
 		}
 	}
 </style>
+

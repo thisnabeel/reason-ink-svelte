@@ -67,24 +67,6 @@
 </script>
 
 <div class="phrases-container">
-	{#if showWizard}
-		<div class="wizard-form">
-			<textarea
-				class="wizard-input"
-				bind:value={wizardPrompt}
-				placeholder="Enter your prompt..."
-				rows="3"
-			></textarea>
-			<button class="run-button" on:click={runWizard} disabled={wizardLoading}>
-				{#if wizardLoading}
-					<i class="fa fa-spinner fa-spin"></i> Generating...
-				{:else}
-					Run
-				{/if}
-			</button>
-		</div>
-	{/if}
-
 	<ul class="phrases">
 		{#if phrases.length > 0}
 			{#each phrases as phrase}
@@ -110,6 +92,24 @@
 			</li>
 		{/if}
 	</ul>
+
+	{#if showWizard}
+		<div class="wizard-form">
+			<textarea
+				class="wizard-input"
+				bind:value={wizardPrompt}
+				placeholder="Enter your prompt..."
+				rows="3"
+			></textarea>
+			<button class="run-button" on:click={runWizard} disabled={wizardLoading}>
+				{#if wizardLoading}
+					<i class="fa fa-spinner fa-spin"></i> Generating...
+				{:else}
+					Run
+				{/if}
+			</button>
+		</div>
+	{/if}
 
 	<div class="adder">
 		<div class="add-phrase" on:click={addPhrase}>+</div>

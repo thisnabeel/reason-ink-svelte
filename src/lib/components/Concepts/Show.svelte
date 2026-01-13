@@ -4,11 +4,12 @@
 	import Scripts from '../Page/Tabs/Scripts/Scripts.svelte';
 	import Experiments from '../Page/Tabs/Experiments/Experiments.svelte';
 	import Phrases from '../Page/Tabs/Phrases/Phrases.svelte';
+	import Examples from '../Page/Tabs/Examples/Examples.svelte';
 	import Api from '$lib/api/api/api.js';
 
 	export let concept;
 
-	let tabs = ['Abstractions', 'Quiz', 'Scripts', 'Experiments', 'Phrases'];
+	let tabs = ['Abstractions', 'Quiz', 'Scripts', 'Experiments', 'Phrases', 'Examples'];
 	let activeTab = 'Abstractions';
 
 	let editingStartYear = false;
@@ -145,6 +146,10 @@
 
 	{#if activeTab === 'Phrases'}
 		<Phrases element={concept} elementType="concepts" />
+	{/if}
+
+	{#if activeTab === 'Examples'}
+		<Examples element={concept} elementType="concepts" />
 	{/if}
 </section>
 
