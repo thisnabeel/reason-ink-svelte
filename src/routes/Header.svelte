@@ -1,12 +1,24 @@
 <script>
 	import { resolve } from '$app/paths';
+	import QuizModal from '$lib/components/Quiz/QuizModal.svelte';
+
+	let showQuizModal = false;
+
+	const toggleQuizModal = () => {
+		showQuizModal = !showQuizModal;
+	};
 </script>
 
 <header>
-	<!-- Top-left: Newspaper/News icon button -->
-	<button class="nav-button nav-button-left" aria-label="News">
-		<i class="fa fa-newspaper"></i>
-	</button>
+	<!-- Top-left: Newspaper/News icon button and Controller button -->
+	<div class="nav-buttons-left">
+		<button class="nav-button" aria-label="News">
+			<i class="fa fa-newspaper"></i>
+		</button>
+		<button class="nav-button" aria-label="Quiz" on:click={toggleQuizModal}>
+			<i class="fa fa-gamepad"></i>
+		</button>
+	</div>
 
 	<!-- Center: Yasbahoon Logo/Title with Binoculars -->
 	<div class="logo-container">
@@ -25,6 +37,10 @@
 		</button>
 	</div>
 </header>
+
+{#if showQuizModal}
+	<QuizModal on:close={() => (showQuizModal = false)} />
+{/if}
 
 <style>
 	header {
@@ -71,13 +87,15 @@
 		color: #97b1ff;
 	}
 
-	.nav-button-left {
+	.nav-buttons-left {
 		position: absolute;
 		top: 40px;
 		left: 30px;
+		display: flex;
+		gap: 10px;
 	}
 
-	.nav-button-left .fa {
+	.nav-buttons-left .nav-button .fa {
 		top: 28%;
 		left: 30%;
 	}
@@ -129,9 +147,10 @@
 			font-size: 18px;
 		}
 
-		.nav-button-left {
+		.nav-buttons-left {
 			top: 20px;
 			left: 20px;
+			gap: 8px;
 		}
 
 		.nav-buttons-right {

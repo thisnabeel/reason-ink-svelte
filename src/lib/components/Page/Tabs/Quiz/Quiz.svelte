@@ -22,7 +22,7 @@
 </script>
 
 <li class="quiz">
-	<span contenteditable on:keyup={(e) => debounce(e.target.innerHTML)}>{quiz.question || ''}</span>
+	<span contenteditable on:keyup={(e) => debounce(e.target.innerHTML)}>{@html quiz.question || ''}</span>
 	<span class="fa fa-trash" on:click={() => destroy(quiz)} />
 
 	<hr />

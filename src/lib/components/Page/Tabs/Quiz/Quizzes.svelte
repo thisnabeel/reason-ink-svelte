@@ -17,6 +17,7 @@
 			}
 		});
 		console.log({ res });
+		// The backend automatically adds the parent concept, so res should include it
 		quiz_sets = [...quiz_sets, res];
 		element.quiz_sets = quiz_sets;
 	}
