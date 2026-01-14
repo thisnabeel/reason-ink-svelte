@@ -84,7 +84,8 @@
 
 	<div class="search-col search-col-right">
 		<div class="cta-search">
-			<a href="/concepts/mapper">Concepts</a> | <a href="/concepts/timeline">Timeline</a>
+			<a href="/concepts/mapper">Concepts</a> | <a href="/concepts/timeline">Chapters</a> |
+			<a href="/chapters/mapper">Chapters</a>
 		</div>
 		<div class="search-input-wrapper">
 			<input

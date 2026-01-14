@@ -15,3 +15,12 @@ export const goHome = () => {
 	selectedConcept.set(null);
 };
 
+export const chapters = writable([]);
+export const chaptersMap = writable([]);
+
+export const selectedChapter = writable(null);
+
+export const selectChapter = (item) => {
+	selectedChapter.set(item);
+};
+
