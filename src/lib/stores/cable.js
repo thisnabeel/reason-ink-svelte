@@ -6,6 +6,24 @@ let ActionCable = null;
 let cable = null;
 let subscriptions = {};
 
+// Get WebSocket URL - matches the API base URL logic
+function getWebSocketUrl() {
+	if (!browser) return null;
+	
+	// Use the same logic as api.js
+	// In production: https://reason-ink-api-production.up.railway.app
+	// In development: http://localhost:3000
+	const isProduction = browser && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
+	
+	if (isProduction) {
+		// Production: use wss:// for secure WebSocket
+		return 'wss://reason-ink-api-production.up.railway.app/cable';
+	} else {
+		// Development: use ws:// for local WebSocket
+		return 'ws://localhost:3000/cable';
+	}
+}
+
 async function loadActionCable() {
 	if (!browser) return null;
 	
@@ -33,8 +51,15 @@ export async function getCable() {
 
 	// Recreate cable if it doesn't exist
 	if (!cable) {
+		// Get WebSocket URL based on environment
+		const baseWsUrl = getWebSocketUrl();
+		if (!baseWsUrl) {
+			console.error('Could not determine WebSocket URL');
+			return null;
+		}
+		
 		// Pass auth tokens as query parameters for WebSocket
-		const wsUrl = `ws://localhost:3000/cable?user_email=${encodeURIComponent(currentUser.email)}&user_token=${encodeURIComponent(currentUser.generated_token)}`;
+		const wsUrl = `${baseWsUrl}?user_email=${encodeURIComponent(currentUser.email)}&user_token=${encodeURIComponent(currentUser.generated_token)}`;
 		cable = ActionCableModule.createConsumer(wsUrl);
 	}
 
