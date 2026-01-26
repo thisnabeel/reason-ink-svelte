@@ -1,6 +1,7 @@
 <script>
 	import { resolve } from '$app/paths';
 	import QuizModal from '$lib/components/Quiz/QuizModal.svelte';
+	import User from '$lib/nav-buttons/User.svelte';
 
 	let showQuizModal = false;
 
@@ -32,9 +33,7 @@
 		<button class="nav-button" aria-label="Book">
 			<i class="fa fa-book"></i>
 		</button>
-		<button class="nav-button" aria-label="User">
-			<i class="fa fa-user"></i>
-		</button>
+		<User />
 	</div>
 </header>
 
