@@ -1,11 +1,29 @@
 <script>
 	import Api from '$lib/api/api/api.js';
 	import { onMount, onDestroy } from 'svelte';
+	import TypewriterEditor from './TypewriterEditor.svelte';
 
 	export let chapter;
 
 	let timer;
 	let notesEditable = false;
+	let typewriterMode = true;
+	let bodyWordCount = 0;
+
+	// Out-loud read time: medium pace ≈ 150 WPM (conversational/audiobook range 130–160)
+	const WPM_OUTLOUD_MEDIUM = 150;
+
+	const formatReadTime = (totalSeconds) => {
+		if (totalSeconds < 0 || !Number.isFinite(totalSeconds)) return '0h 00m 00s';
+		const h = Math.floor(totalSeconds / 3600);
+		const m = Math.floor((totalSeconds % 3600) / 60);
+		const s = Math.floor(totalSeconds % 60);
+		const pad = (n) => (n < 10 ? '0' + n : String(n));
+		return `${h}h ${pad(m)}m ${pad(s)}s`;
+	};
+
+	$: readTimeSeconds = typewriterMode ? (bodyWordCount / WPM_OUTLOUD_MEDIUM) * 60 : 0;
+	$: readTimeFormatted = formatReadTime(readTimeSeconds);
 	let youtubePlayer = null;
 	let youtubePlayerId = 'youtube-player-' + Math.random().toString(36).substr(2, 9);
 	let processedNotes = '';
@@ -304,13 +322,43 @@
 		on:keyup={(e) => saveField('title', e.target.textContent)}>{chapter.title || 'Untitled Chapter'}</h1
 	>
 
+	<div class="typewriter-switch-row">
+		<label class="typewriter-switch-label">
+			<span class="typewriter-switch-text">Typewriter</span>
+			<input
+				type="checkbox"
+				class="typewriter-switch-input"
+				bind:checked={typewriterMode}
+				aria-label="Toggle typewriter mode"
+			/>
+			<span class="typewriter-switch-slider"></span>
+		</label>
+	</div>
+
+	{#if typewriterMode}
+		<div class="read-time-bar" role="status" aria-live="polite">
+			<span class="read-time-label">Read aloud</span>
+			<span class="read-time-value">{readTimeFormatted}</span>
+		</div>
+	{/if}
+
 	<div class="field-section">
 		<label class="field-label">Body</label>
-		<div
-			class="field-content body-field"
-			contenteditable=""
-			on:keyup={(e) => saveField('body', e.target.innerHTML)}>{@html chapter.body || ''}</div
-		>
+		{#if typewriterMode}
+			<div class="field-content body-field typewriter-wrap">
+				<TypewriterEditor
+					content={chapter.body || ''}
+					onSave={(html) => saveField('body', html)}
+					bind:wordCount={bodyWordCount}
+				/>
+			</div>
+		{:else}
+			<div
+				class="field-content body-field"
+				contenteditable=""
+				on:keyup={(e) => saveField('body', e.target.innerHTML)}>{@html chapter.body || ''}</div
+			>
+		{/if}
 	</div>
 
 	<div class="field-section">
@@ -387,6 +435,101 @@
 
 	.title:focus {
 		border-bottom-color: #97b1ff;
+	}
+
+	.typewriter-switch-row {
+		margin-bottom: 20px;
+	}
+
+	.typewriter-switch-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.typewriter-switch-text {
+		font-size: 15px;
+		font-weight: 600;
+		color: #444;
+	}
+
+	.typewriter-switch-input {
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.typewriter-switch-slider {
+		position: relative;
+		display: inline-block;
+		width: 44px;
+		height: 24px;
+		background: #ccc;
+		border-radius: 24px;
+		transition: background 0.25s ease;
+	}
+
+	.typewriter-switch-slider::after {
+		content: '';
+		position: absolute;
+		width: 20px;
+		height: 20px;
+		left: 2px;
+		top: 2px;
+		background: #fff;
+		border-radius: 50%;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		transition: transform 0.25s ease;
+	}
+
+	.typewriter-switch-input:checked + .typewriter-switch-slider {
+		background: #97b1ff;
+	}
+
+	.typewriter-switch-input:checked + .typewriter-switch-slider::after {
+		transform: translateX(20px);
+	}
+
+	.read-time-bar {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 10px 14px;
+		margin: 0 -30px 20px -30px;
+		padding-left: 30px;
+		padding-right: 30px;
+		background: linear-gradient(to bottom, #f8f9fc 0%, #f0f2f8 100%);
+		border-bottom: 1px solid #e2e6ee;
+		font-size: 14px;
+		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+	}
+
+	.read-time-label {
+		color: #666;
+		font-weight: 500;
+	}
+
+	.read-time-value {
+		font-variant-numeric: tabular-nums;
+		font-weight: 600;
+		color: #333;
+		letter-spacing: 0.02em;
+	}
+
+	.typewriter-wrap {
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.typewriter-wrap :global(.typewriter-editor) {
+		border: none;
+		background: transparent;
 	}
 
 	.field-section {
