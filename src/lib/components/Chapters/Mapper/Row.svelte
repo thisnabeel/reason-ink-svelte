@@ -6,6 +6,31 @@
 	export let type;
 	export let removeChapter;
 
+	// Out-loud read time: same as typewriter (150 WPM)
+	const WPM_OUTLOUD = 150;
+
+	function wordCount(body) {
+		if (!body || typeof body !== 'string') return 0;
+		const text = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+		return text ? text.split(' ').filter(Boolean).length : 0;
+	}
+
+	function formatReadTime(totalSeconds) {
+		if (totalSeconds <= 0 || !Number.isFinite(totalSeconds)) return null;
+		const h = Math.floor(totalSeconds / 3600);
+		const m = Math.floor((totalSeconds % 3600) / 60);
+		const s = Math.floor(totalSeconds % 60);
+		const parts = [];
+		if (h > 0) parts.push(h + 'h');
+		if (m > 0 || h > 0) parts.push((m < 10 && h > 0 ? '0' : '') + m + 'm');
+		if (s > 0 || (h === 0 && m === 0)) parts.push((s < 10 && (h > 0 || m > 0) ? '0' : '') + s + 's');
+		return parts.join(' ');
+	}
+
+	$: words = wordCount(item.body);
+	$: readTimeSeconds = (words / WPM_OUTLOUD) * 60;
+	$: readTimeLabel = formatReadTime(readTimeSeconds);
+
 	function handleChapterClick() {
 		if ($selectedChapter && $selectedChapter.id === item.id) {
 			selectChapter(null);
@@ -22,6 +47,9 @@
 <li class="chapter" class:selected={$selectedChapter && item.id === $selectedChapter.id}>
 	<div class="chapter-info" on:click={handleChapterClick}>
 		<span class="title">{item.title || 'Untitled Chapter'}</span>
+		{#if readTimeLabel}
+			<span class="read-time" title="Read aloud">{readTimeLabel}</span>
+		{/if}
 	</div>
 	{#if $selectedChapter && item.id === $selectedChapter.id}
 		<i
@@ -69,8 +97,25 @@
 	}
 
 	.title {
-		display: block;
+		display: inline;
 		font-size: 28px;
+	}
+
+	.read-time {
+		display: inline-block;
+		margin-left: 0.5rem;
+		padding: 0.2em 0.6em;
+		font-size: 0.75rem;
+		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+		color: #5a6268;
+		letter-spacing: 0.02em;
+		background: #e9ecef;
+		border-radius: 9999px;
+	}
+
+	.read-time::before {
+		content: none;
 	}
 
 	.link-btn,
